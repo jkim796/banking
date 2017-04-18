@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import csv
+import json
 import sys
 from datetime import datetime, date
 
@@ -8,33 +9,8 @@ total_by_payee = {}
 payee_sum = {}
 payee_by_category = {}
 total_special_occasion = {}
-category = {'parking': ['FUCK PARKING TICKETS'],
-            'coffee': ['JAVA WORLD ATLANTA GA',
-                       'GT STARBUCKS 24018525 ATLANTA GA'],
-            'grocery': ['KROGER 346 ATLANTA GA',
-                        'WAL-MART #3775 ATLANTA GA'],
-            'gas' : ['TEXACO 0370418 ATLANTA GA'],
-            'food' : ['GT SUBWAY 24039075 ACWORTH GA',
-                      'SQ *BENTO BUS Roswell GA',
-                      'GT CHICKFILA 24039331 ATLANTA GA',
-                      'Ginya Izakaya ATLANTA GA',
-                      'RAKU ATLANTA ATLANTA GA',
-                      'FELLINI\'s PIZZA-HOWELL ATLANTA GA',
-                      'CHICK-FIL-A #03551 ATLANTA GA',
-                      'MCDONALD\'s F10107 ATLANTA GA',
-                      'GA TECH PANDA 24416604 ATLANTA GA',
-                      'WAFFLE HOUSE 1885 ATLANTA GA',
-                      'TIN DRUM ASIACAFE AT G ATLANTA GA',
-                      'NOODLE ATLANTA GA',
-                      'HIGHLAND BAKERY ATLANTA GA']}
-tinder_dates = [{'where': 'VORTEX BAR & GRILL ATLANTA GA',
-                 'when': date(2017, 3, 28)},
-                {'where': 'RAKU ATLANTA ATLANTA GA',
-                 'when': date(2017, 4, 3)},
-                {'where': 'AMELIES ATLANTA ATLANTA GA',
-                 'when': date(2017, 4, 4)},
-                {'where': 'Padriac\'s Atlanta GA',
-                 'when': date(2017, 4, 10)}]
+category = {}
+special_occasions = []
 
 class Purchase:
     def __init__(self, purchase_item):
@@ -46,10 +22,9 @@ class Purchase:
         self.special = self.handle_special()
 
     def handle_special(self):
-        ''' for now only handles tinder dates '''
-        for td in tinder_dates:
-            if td['where'] == self.payee and td['when'] == self.posted_date:
-                return 'tinder'
+        for item in special_occasions:
+            if item['where'] == self.payee and item['when'] == self.posted_date:
+                return 'special occasion'
         return None
 
 def get_category(payee):
@@ -126,8 +101,26 @@ def print_summary(date_begin, date_end, total):
                                              abs(date_end - date_begin).days))
     print('total spent = {:.2f}'.format(total))
 
+def init_category(filename):
+    global category
+
+    with open(filename, 'r') as f:
+        s = f.read()
+    category = json.loads(s)
+
+def init_special_occasion(config_file):
+    global special_occasions
+
+    with open(config_file, 'r') as f:
+        s = f.read()
+    special_occasions = json.loads(s)
+    for item in special_occasions:
+        item['when'] = datetime.strptime(item['when'], '%m/%d/%Y').date()
+
 
 if __name__ == '__main__':
+    init_category('./config/category.json')
+    init_special_occasion('./config/special_occasion.json')
     filename = sys.argv[1]
     date_begin, date_end = get_total_by_payee(filename)
     get_duplicates()
