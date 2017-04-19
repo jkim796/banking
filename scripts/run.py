@@ -99,7 +99,7 @@ def print_summary(date_begin, date_end, total):
     print('from {} to {} ({:d} days)'.format(date_begin.strftime('%m/%d/%Y'), \
                                              date_end.strftime('%m/%d/%Y'), \
                                              abs(date_end - date_begin).days))
-    print('total spent = {:.2f}'.format(total))
+    print('total spent = $ {:.2f}'.format(total))
 
 def init_category(filename):
     global category
