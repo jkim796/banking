@@ -1,4 +1,6 @@
-[{"where": "HIGHLAND BAKERY ATLANTA GA",
-  "when": "04/20/2017"},
- {"where": "GT CHICKFILA 24039331 ATLANTA GA",
-  "when": "04/21/2017"}]
+{"birthday lunch": [{"where": "HIGHLAND BAKERY ATLANTA GA",
+		     "when": "04/20/2017"},
+		    {"where": "GT CHICKFILA 24039331 ATLANTA GA",
+		     "when": "04/21/2017"}],
+ "hangout": ["where": "MOVIE THEATER",
+	     "when": "04/02/2017"]}
