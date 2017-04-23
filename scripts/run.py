@@ -22,6 +22,7 @@ class Purchase:
         self.addr = purchase_item['Address']
         self.amount = float(purchase_item['Amount'])
         self.special = self.handle_special()
+        self.category = self.get_category()
 
     def handle_special(self):
         for category in special_occasions:
@@ -29,6 +30,16 @@ class Purchase:
                 if item['where'] == self.payee and item['when'] == self.date:
                     return category
         return None
+
+    def get_category(self):
+        if self.special is not None:
+            return self.special
+        for cat in category:
+            for p in category[cat]:
+                if self.payee == p:
+                    return cat
+        return 'misc'
+
 
 class Debit:
     def __init__(self, item):
@@ -38,21 +49,12 @@ class Debit:
         self.balance = float(item[3])
 
 
-def get_category(payee):
-    if payee.special is not None:
-        return payee.special
-    for cat in category:
-        for p in category[cat]:
-            if payee.payee == p:
-                return cat
-    return 'misc'
-
 def categorize():
     for payee in total_by_payee:
         if payee == helpful_names['credit card pay']:
             continue
         for purchase in total_by_payee[payee]:
-            cat = get_category(purchase)
+            cat = purchase.get_category()
             if cat in payee_by_category:
                 payee_by_category[cat] += purchase.amount
             else:
