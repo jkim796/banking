@@ -12,7 +12,6 @@ payee_by_category = {}
 total_special_occasion = {}
 category = {}
 special_occasions = []
-
 total_by_payee_debit = {}
 
 class Purchase:
@@ -25,9 +24,10 @@ class Purchase:
         self.special = self.handle_special()
 
     def handle_special(self):
-        for item in special_occasions:
-            if item['where'] == self.payee and item['when'] == self.date:
-                return 'special occasion'
+        for category in special_occasions:
+            for item in special_occasions[category]:
+                if item['where'] == self.payee and item['when'] == self.date:
+                    return category
         return None
 
 class Debit:
@@ -161,8 +161,9 @@ def init_special_occasion(config_file):
     with open(config_file, 'r') as f:
         s = f.read()
     special_occasions = json.loads(s)
-    for item in special_occasions:
-        item['when'] = datetime.strptime(item['when'], '%m/%d/%Y').date()
+    for category in special_occasions:
+        for item in special_occasions[category]:
+            item['when'] = datetime.strptime(item['when'], '%m/%d/%Y').date()
 
 def print_usage():
     print('Usage: ./run.py [csv file] [credit | debit | savings]')
