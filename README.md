@@ -3,7 +3,7 @@ Credit card expenditure analyzer
 
 Usage:
 ```bash
-./run.py [csv file]
+./run.py [csv file] [credit | debit | savings]
 ```
 Features:
 
@@ -13,4 +13,4 @@ Features:
 
 3. Shows total amount spent over the range of days specified in csv
 
-Currently only supports the Bank of America credit card csv format.
+Currently supports Bank of America credit and debit card csv format.
