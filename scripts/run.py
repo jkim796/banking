@@ -71,14 +71,20 @@ def print_by_category(total):
     print('TOTAL: $ {:.2f}'.format(total))
     print('*' * 19)
 
-def get_total_by_payee(filename):
+def get_total_by_payee(filename, date_begin, date_end):
     ''' creates a dictionary from payee string to a list of items  '''
     with open(filename, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             purchase = Purchase(row)
-            if reader.line_num == 2:
+            if date_end is not None:
+                if date_end < purchase.date:
+                    continue
+            elif reader.line_num == 2:
                 date_end = purchase.date
+            if date_begin is not None:
+                if date_begin > purchase.date:
+                    return date_begin, date_end
             if purchase.payee in total_by_payee:
                 total_by_payee[purchase.payee].append(purchase)
             else:
@@ -172,7 +178,7 @@ def print_usage():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 5:
         print_usage()
         exit()
 
@@ -181,9 +187,11 @@ if __name__ == '__main__':
 
     filename = sys.argv[1]
     credit_or_debit = sys.argv[2]
+    date_begin = datetime.strptime(sys.argv[3], '%m.%d.%Y').date()
+    date_end = datetime.strptime(sys.argv[4], '%m.%d.%Y').date()
 
     if credit_or_debit == 'credit':
-        date_begin, date_end = get_total_by_payee(filename)
+        date_begin, date_end = get_total_by_payee(filename, date_begin, date_end)
         get_duplicates()
         print_payee_amount()
         categorize()
