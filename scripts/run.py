@@ -2,6 +2,7 @@
 import csv
 import json
 import sys
+import argparse
 from datetime import datetime, date
 import re
 
@@ -38,6 +39,9 @@ class Purchase:
             for p in category[cat]:
                 if self.payee == p:
                     return cat
+                # LYFT payee name changes all the time
+                if self.payee[:4] == "LYFT":
+                    return "uber"
         return 'misc'
 
 
@@ -173,31 +177,66 @@ def init_special_occasion(config_file):
         for item in special_occasions[category]:
             item['when'] = datetime.strptime(item['when'], '%m/%d/%Y').date()
 
-def print_usage():
-    print('Usage: ./run.py [csv file] [credit | debit | savings]')
+
+class StatementReader(object):
+    def __init__(self, csvfile):
+        self.csvfile = csvfile
+        self.lines = self.read_csv()
+
+    def read_csv(self):
+        with open(self.csvfile, 'r') as f:
+            return f.readlines()
+
+    def get_default_start_date(self):
+        line = self.lines[-1]
+        date = line.split(',')[0]
+        return date.replace('/', '.')
+
+    def get_default_end_date(self):
+        line = self.lines[1]
+        date = line.split(',')[0]
+        return date.replace('/', '.')
 
 
-if __name__ == '__main__':
-    if len(sys.argv) != 5:
-        print_usage()
-        exit()
-
+def main(args):
     init_category('./config/category.json')
     init_special_occasion('./config/special_occasion.json')
 
-    filename = sys.argv[1]
-    credit_or_debit = sys.argv[2]
-    date_begin = datetime.strptime(sys.argv[3], '%m.%d.%Y').date()
-    date_end = datetime.strptime(sys.argv[4], '%m.%d.%Y').date()
+    filename = args.csv_file
+    filetype = args.type
 
-    if credit_or_debit == 'credit':
+    reader = StatementReader(filename)
+    start_date = reader.get_default_start_date() if args.start_date == '' else args.start_date
+    end_date = reader.get_default_end_date() if args.end_date == '' else args.end_date
+    date_begin = datetime.strptime(start_date, '%m.%d.%Y').date()
+    date_end = datetime.strptime(end_date, '%m.%d.%Y').date()
+
+    if filetype == 'credit':
         date_begin, date_end = get_total_by_payee(filename, date_begin, date_end)
         get_duplicates()
         print_payee_amount()
         categorize()
         print_summary(date_begin, date_end, get_total(payee_sum))
         print_by_category(get_total(payee_sum))
-    elif credit_or_debit == 'debit':
+    elif filetype == 'debit':
         date_begin, date_end = process_debit(filename)
         tmp = print_debit()
         print_summary(date_begin, date_end, get_total(tmp))
+
+
+if __name__ == '__main__':
+    argparser = argparse.ArgumentParser(description='Credit/debit card expenditure analyzer.')
+    argparser.add_argument('csv_file',
+                           help='Transactions CSV file.')
+    argparser.add_argument('-t', '--type',
+                           default='credit',
+                           help='credit | debit | savings')
+    argparser.add_argument('-s', '--start_date',
+                           default='',
+                           help='Start date (m.d.y). Default: earliest date in CSV file.')
+    argparser.add_argument('-e', '--end_date',
+                           default='',
+                           help='End date (m.d.y). Default: latest date in CSV file.')
+    args = argparser.parse_args()
+
+    main(args)
